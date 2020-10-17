@@ -2,6 +2,7 @@ extensions [py]
 __includes ["utils.nls"]
 breed [voters voter]
 breed [referenda referendum]
+
 voters-own [
   utility
   voice-credits
@@ -9,6 +10,7 @@ voters-own [
   votes-cast
   perceived-pivotality
 ]
+
 referenda-own [
   votes-list
   sum-of-votes
@@ -17,6 +19,7 @@ referenda-own [
 
 globals[
   the-referendum
+  the-poll
   a-value
   b-value
   payoff-list
@@ -36,10 +39,8 @@ to setup
   set vote-sum-list (list)
   set mean-median-same-sign-list (list)
 
-  spawn-voters-with-utilities
-  spawn-referenda
-  set the-referendum one-of referenda
-  draw-axes-mean-and-median-utilities
+  do-shared-setup-reset
+
   py:setup py:python
   py:run "import scipy.stats as stats"
 end
@@ -48,13 +49,18 @@ to reset
   clear-turtles
   clear-drawing
 
-  spawn-voters-with-utilities
-  spawn-referenda
-  set the-referendum one-of referenda
-  draw-axes-mean-and-median-utilities
+  do-shared-setup-reset
+
   clear-all-plots
   setup-plots
   update-plots
+end
+
+
+to do-shared-setup-reset
+  spawn-voters-with-utilities
+  create-referendum-and-poll
+  draw-axes-mean-and-median-utilities
 end
 
 ;; spawns voters with random utilities for each issue
@@ -79,21 +85,24 @@ to create-voters-with-prop8-utility-dist
 
   let het-support 0
   ifelse calibration = "1. prop8-mean>0" [
-    set het-support 0.48 ;support of the heterosexual population for a calibration with mean utility > 0
+    set het-support 0.44 ;support of the heterosexual population for a calibration with mean utility > 0
   ] [
-    set het-support 0.36 ;support of the heterosexual population for a calibration with mean utility = 0
+    set het-support 0.32 ;support of the heterosexual population for a calibration with mean utility = 0
   ]
+
+  let lgbt-in-relationship 0.007
+  let lgbt-total 0.04
 
   create-voters number-of-voters [
     let random-num random-float 1
     (ifelse
-      random-num < 0.007 [ ; This is the portion of the population that is LGBT and in a relationship
+      random-num < lgbt-in-relationship [
         set utility 2 + random-float 18
       ]
-      random-num < 0.04 [ ; This the portion of the population that is LGBT and in a relationship
+      random-num < lgbt-total [ ; This the portion of the population that is LGBT and not in a relationship, because any number below 0.007 already went to lgbt-in-relationship
         set utility 0.5 + random-float 3.5
       ]
-      random-num < het-support [ ; This is the % of the non-LGBT population that supported gay marriage
+      random-num < het-support + lgbt-total [ ; This is the % of the non-LGBT population that supported gay marriage (the number has to be greater than lgbt-total already)
         set utility random-float 1
       ]
       [ ; the remaining % of the population opposed gay marriage
@@ -122,14 +131,27 @@ to set-xcor-to-utility
   ]
 end
 
-to spawn-referenda
-  ask patches with [pycor = max-pycor and pxcor = 0][
-    sprout-referenda 1 [
-      set shape "square"
-      set color white
-      set votes-list (list)
-      set size 2
-  ]]
+to create-referendum-and-poll
+  create-referenda 1 [
+    set shape "square"
+    set color white
+    set votes-list (list)
+    set size 2
+    set ycor max-pycor - 5
+    set the-referendum self
+    set label "result      "
+  ]
+
+  create-referenda 1 [
+    set shape "circle"
+    set color yellow
+    set votes-list (list)
+    set size 2
+    set ycor max-pycor - 7
+    set the-poll self
+    set label "poll      "
+  ]
+
 end
 
 to draw-axes-mean-and-median-utilities
@@ -169,14 +191,25 @@ to draw-line [x-cor y-cor direction lcolor dotted? l-label backtrack]
     back backtrack
   ]
 end
+
+
+
+
+
 ;***************GO PROCEDURES*******************
-to go
+to vote
+
   (ifelse
-    voting-mechanism = "QV" [vote-QV the-referendum]
-    voting-mechanism = "1p1v" [vote-1p1v the-referendum])
+    voting-mechanism = "QV" [
+      assign-pmp
+      vote-QV voters the-referendum
+    ]
+    voting-mechanism = "1p1v" [
+      vote-1p1v the-referendum
+    ]
+  )
 
   ask voters [visualize-votes]
-  ask the-referendum [visualize-outcome]
 
   set payoff-list lput payoff payoff-list
   set payoff-sign-list lput ifelse-value payoff > 0 [1] [0] payoff-sign-list
@@ -194,31 +227,30 @@ to vote-1p1v [active-referendum] ;; Procedure for voters to vote using 1p1v mech
     set list-of-votes fput votes-cast list-of-votes
   ]
 
-  ask active-referendum [
-    set votes-list list-of-votes
-    set sum-of-votes sum list-of-votes
-
-    ifelse sum-of-votes > 0 [
-      set outcome 1
-      set color green
-    ] [
-      set outcome -1
-      set color red
-    ]
-  ]
+  visualize-outcome active-referendum list-of-votes
 
 end
 
-to vote-QV [active-referendum]
+to vote-QV [the-voters active-referendum]
   let list-of-votes (list)
 
-  assign-p-values-to-voters
 
-  ask voters [
-    set votes-cast (sign-of utility) * sqrt voice-credits-spent active-referendum
-    set list-of-votes fput votes-cast list-of-votes
-  ]
+  (ifelse
+    behavior-under-qv = "rational" [
+      ask the-voters [
+        set votes-cast (sign-of utility) * sqrt voice-credits-spent active-referendum
+        set list-of-votes fput votes-cast list-of-votes]]
+    behavior-under-qv = "right-direction-random-magnitude" [
+      ask the-voters [
+        set votes-cast (sign-of utility) * random-float 5
+        set list-of-votes fput votes-cast list-of-votes]]
+  )
+  visualize-outcome active-referendum list-of-votes
 
+end
+
+
+to visualize-outcome [active-referendum list-of-votes]
   ask active-referendum [
     set votes-list list-of-votes
     set sum-of-votes sum list-of-votes
@@ -229,32 +261,62 @@ to vote-QV [active-referendum]
       set outcome -1
       set color red
     ]
+    set xcor (sign-of sum-of-votes) * min (list max-pxcor (abs (sum-of-votes / 10)))
   ]
 end
 
 
+to take-poll
+  let polled-agentset n-of (poll-response-rate * count voters) voters
 
-to assign-p-values-to-voters
-  ifelse marginal-pivotality = 1 or variance-of-perceived-pivotality = 0[
-    ask voters [set perceived-pivotality marginal-pivotality / mpp-divided]
-  ]
-  [
-    ; using a beta dist for p-value
-    ; used equations here https://stats.stackexchange.com/questions/12232/calculating-the-parameters-of-a-beta-distribution-using-the-mean-and-variance
-    let var variance-of-perceived-pivotality
-    let ave marginal-pivotality
-    let max-var marginal-pivotality - marginal-pivotality ^ 2
-    if var > max-var [set var .99 * max-var]
-    set a-value ave ^ 2 * ( (1 - ave) / var - 1 / ave)
-    set b-value a-value * (1 / ave - 1)
+  vote-QV polled-agentset the-poll
+  ;set poll n-values length social-policy-vector [0]
+  ;ask polled-agentset [
+   ; set poll (add-lists poll votes)
+  ;]
+  ;foreach [votes] of polled-agentset [a -> set poll (map [[b c] -> b + c] a poll)]
+  ;refresh-viz
+end
 
-    py:set "a" a-value
-    py:set "b" b-value
-    py:set "number_of_voters" number-of-voters
-    let list-of-p py:runresult "stats.beta.rvs(a, b, size = number_of_voters)"
 
-    ask voters [set perceived-pivotality (item who list-of-p) / mpp-divided]
-  ]
+
+;;*********Procedures for determining perceived marginal pivotality (PMP)****************
+to assign-pmp
+;  ifelse estimating-PMP-from-polls? [
+;    estimate-pmp-from-polls
+;  ] [
+    assign-pmp-from-distribution
+;  ]
+end
+
+
+to estimate-pmp-from-polls
+
+end
+
+to assign-pmp-from-distribution
+  (ifelse
+    marginal-pivotality = 1 or variance-of-pmp = 0[
+      ask voters [set perceived-pivotality marginal-pivotality]
+    ]
+    [
+      ; using a beta dist for p-value
+      ; used equations here https://stats.stackexchange.com/questions/12232/calculating-the-parameters-of-a-beta-distribution-using-the-mean-and-variance
+      let var variance-of-pmp
+      let ave marginal-pivotality
+      let max-var marginal-pivotality - marginal-pivotality ^ 2
+      if var > max-var [set var .99 * max-var]
+      set a-value ave ^ 2 * ( (1 - ave) / var - 1 / ave)
+      set b-value a-value * (1 / ave - 1)
+
+      py:set "a" a-value
+      py:set "b" b-value
+      py:set "number_of_voters" number-of-voters
+      let list-of-p py:runresult "stats.beta.rvs(a, b, size = number_of_voters)"
+
+      ask voters [set perceived-pivotality (item who list-of-p)]
+    ]
+  )
 end
 
 
@@ -319,17 +381,6 @@ to visualize-votes
     set shape "face sad"
   ]
 end
-
-to visualize-outcome
-  ifelse outcome = 1 [
-    set color green
-    set xcor 1
-  ] [
-    set color red
-    set xcor -1
-  ]
-
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
 311
@@ -367,7 +418,7 @@ number-of-voters
 number-of-voters
 1
 10001
-10001.0
+2041.0
 10
 1
 NIL
@@ -378,8 +429,8 @@ BUTTON
 62
 55
 95
+NIL
 vote
-go
 NIL
 1
 T
@@ -408,10 +459,10 @@ NIL
 1
 
 SWITCH
-212
-471
-320
-504
+208
+559
+354
+592
 limit-votes?
 limit-votes?
 1
@@ -434,15 +485,15 @@ true
 false
 "" ""
 PENS
-"positive" 1.0 1 -13840069 true "" "histogram filter [a -> a >= 0] [votes-list] of the-referendum"
+"positive" 1.0 1 -13840069 true "" "histogram filter [a -> a > 0] [votes-list] of the-referendum"
 "negative" 1.0 1 -2674135 true "" "histogram filter [a -> a < 0] [votes-list] of the-referendum"
 "pen-2" 1.0 0 -16777216 true "" "plot-y-axis"
 
 MONITOR
-6
-370
-100
-415
+2
+458
+96
+503
 payoff
 payoff
 2
@@ -450,10 +501,10 @@ payoff
 11
 
 MONITOR
-105
-370
-192
-415
+101
+458
+188
+503
 vote-sum
 vote-sum
 2
@@ -481,10 +532,10 @@ PENS
 "pen-2" 1.0 0 -16777216 true "" "plot-y-axis"
 
 MONITOR
-118
-419
-222
-464
+114
+507
+218
+552
 mean utilities
 utilities-mean
 3
@@ -515,19 +566,19 @@ majority-utility-stdev
 majority-utility-stdev
 0
 10
-1.0
+2.0
 0.5
 1
 NIL
 HORIZONTAL
 
 SLIDER
-5
-336
-231
-369
-variance-of-perceived-pivotality
-variance-of-perceived-pivotality
+1
+386
+159
+419
+variance-of-pmp
+variance-of-pmp
 0
 0.083
 0.083
@@ -537,10 +588,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-4
-300
-190
-333
+0
+350
+163
+383
 marginal-pivotality
 marginal-pivotality
 .05
@@ -570,10 +621,10 @@ PENS
 "pen-1" 0.1 1 -13345367 true "" "histogram [perceived-pivotality] of voters"
 
 SWITCH
-5
-471
-209
-504
+1
+559
+205
+592
 payoff-include-votes-cost?
 payoff-include-votes-cost?
 1
@@ -588,7 +639,7 @@ CHOOSER
 voting-mechanism
 voting-mechanism
 "1p1v" "QV"
-0
+1
 
 SLIDER
 2
@@ -647,7 +698,7 @@ NIL
 T
 OBSERVER
 NIL
-NIL
+R
 NIL
 NIL
 0
@@ -658,7 +709,7 @@ BUTTON
 160
 95
 reset & vote
-reset \ngo
+reset \nvote
 T
 1
 T
@@ -670,10 +721,10 @@ NIL
 0
 
 MONITOR
-4
-419
-114
-464
+0
+507
+110
+552
 median utilities 
 utilities-median
 2
@@ -688,7 +739,7 @@ CHOOSER
 calibration
 calibration
 "manual" "1. prop8-mean>0" "2. prop8-mean=0"
-1
+0
 
 TEXTBOX
 177
@@ -700,16 +751,65 @@ manual calibration uses the utility sliders below. The others are preset.
 0.0
 1
 
-INPUTBOX
-227
-376
-302
-436
-mpp-divided
-100.0
+BUTTON
+178
+423
+265
+456
+NIL
+take-poll
+NIL
 1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+CHOOSER
+1
+303
+270
+348
+behavior-under-qv
+behavior-under-qv
+"rational" "right-direction-random-magnitude"
+1
+
+SLIDER
 0
-Number
+423
+175
+456
+poll-response-rate
+poll-response-rate
+0
+1
+1.0
+.01
+1
+NIL
+HORIZONTAL
+
+PLOT
+824
+453
+1024
+603
+plot 1
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" "clear-plot"
+PENS
+"default" 1.0 2 -16777216 true "" "ask voters [plotxy utility votes-cast]"
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1281,6 +1381,168 @@ go</go>
     <enumeratedValueSet variable="voting-mechanism">
       <value value="&quot;1p1v&quot;"/>
       <value value="&quot;QV&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="QV-right-direction-random-magnitude-prop8" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>reset
+vote</go>
+    <timeLimit steps="1000"/>
+    <metric>mean payoff-sign-list</metric>
+    <metric>mean payoff-list</metric>
+    <metric>standard-deviation payoff-list</metric>
+    <metric>mean vote-sum-list</metric>
+    <metric>standard-deviation vote-sum-list</metric>
+    <metric>mean mean-median-same-sign-list</metric>
+    <enumeratedValueSet variable="number-of-voters">
+      <value value="11"/>
+      <value value="51"/>
+      <value value="101"/>
+      <value value="501"/>
+      <value value="1001"/>
+      <value value="5001"/>
+      <value value="10001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-fraction">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="majority-mean-utility">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="majority-utility-stdev">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-mean-utility">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-utility-stdev">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="calibration">
+      <value value="&quot;1. prop8-mean&gt;0&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="marginal-pivotality">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="variance-of-pmp">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="limit-votes?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="payoff-include-votes-cost?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="voting-mechanism">
+      <value value="&quot;QV&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="QV-right-direction-random-magnitude-normal-dist" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>reset
+vote</go>
+    <timeLimit steps="1000"/>
+    <metric>mean payoff-sign-list</metric>
+    <metric>mean payoff-list</metric>
+    <metric>standard-deviation payoff-list</metric>
+    <metric>mean vote-sum-list</metric>
+    <metric>standard-deviation vote-sum-list</metric>
+    <metric>mean mean-median-same-sign-list</metric>
+    <enumeratedValueSet variable="number-of-voters">
+      <value value="11"/>
+      <value value="51"/>
+      <value value="101"/>
+      <value value="501"/>
+      <value value="1001"/>
+      <value value="5001"/>
+      <value value="10001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-fraction">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="majority-mean-utility">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="majority-utility-stdev">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-mean-utility">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-utility-stdev">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="calibration">
+      <value value="&quot;manual&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="marginal-pivotality">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="variance-of-pmp">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="limit-votes?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="payoff-include-votes-cost?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="voting-mechanism">
+      <value value="&quot;QV&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="1p1v-normal-dist" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>reset
+vote</go>
+    <timeLimit steps="1000"/>
+    <metric>mean payoff-sign-list</metric>
+    <metric>mean payoff-list</metric>
+    <metric>standard-deviation payoff-list</metric>
+    <metric>mean vote-sum-list</metric>
+    <metric>standard-deviation vote-sum-list</metric>
+    <metric>mean mean-median-same-sign-list</metric>
+    <enumeratedValueSet variable="number-of-voters">
+      <value value="11"/>
+      <value value="51"/>
+      <value value="101"/>
+      <value value="501"/>
+      <value value="1001"/>
+      <value value="5001"/>
+      <value value="10001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-fraction">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="majority-mean-utility">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="majority-utility-stdev">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-mean-utility">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-utility-stdev">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="calibration">
+      <value value="&quot;manual&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="marginal-pivotality">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="variance-of-pmp">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="limit-votes?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="payoff-include-votes-cost?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="voting-mechanism">
+      <value value="&quot;1p1v&quot;"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

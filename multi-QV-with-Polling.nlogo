@@ -118,7 +118,7 @@ to create-voters-with-prop8-utility-dist
     let random-num random-float 1
     (ifelse
       random-num < 0.007 [ ; This is the portion of the population that is LGBT and in a relationship
-        set utilities fput (.1 + random-float .9) utilities  ; .02 and .18 both * 5 to make these utilities comparable to utilities on other issues)
+        set utilities fput (.1 + random-float .9) utilities  ; .1 and .9  to make these utilities comparable to utilities on other issues)
       ]
       random-num < 0.04 [ ; This the portion of the population that is LGBT and in a relationship
         set utilities fput (0.025 + random-float .175) utilities
@@ -285,9 +285,9 @@ to vote-strategic
   let estimated-outcome poll
 
   ; If the agent was not counted in the last poll, add its votes to the poll
-  if not counted-in-last-poll? [
-    set estimated-outcome  (add-lists estimated-outcome votes)
-  ]
+;   if not counted-in-last-poll? [  JACOB 2020.07.05 - I don't think it makes sense that strategic voters would take themselves into account for the poll this way.
+;    set estimated-outcome  (add-lists estimated-outcome votes)
+;  ]
 
   ; Calculate number of votes by using the polling data to guess the marginal pivotality
   ; See "Calculating pivotality from polling" in Notion for more details
@@ -510,7 +510,7 @@ number-of-voters
 number-of-voters
 11
 10001
-10001.0
+1531.0
 10
 1
 NIL
@@ -525,7 +525,7 @@ proportion-of-strategic-voters
 proportion-of-strategic-voters
 0
 1
-1.0
+0.0
 .01
 1
 NIL
@@ -581,11 +581,11 @@ NIL
 0
 
 BUTTON
-104
-191
-219
-243
-Refresh
+1008
+10
+1123
+62
+NIL
 refresh-viz\n
 NIL
 1
@@ -671,27 +671,10 @@ QV?
 -1000
 
 BUTTON
-105
+106
 316
 218
 350
-Toggle QV?
-set QV? not QV?
-NIL
-1
-T
-OBSERVER
-NIL
-Q
-NIL
-NIL
-0
-
-BUTTON
-0
-350
-218
-384
 Poll and Vote
 take-poll\nifelse QV? [vote-QV][vote-1p1v]
 NIL
@@ -718,7 +701,7 @@ map [x -> precision x 2] social-policy-vector
 MONITOR
 833
 139
-1006
+1130
 184
 Poll Results
 poll-results
@@ -779,7 +762,7 @@ CHOOSER
 utility-distribution
 utility-distribution
 "Normal mean = 0" "Normal mean != 0" "Bimodal one direction" "Bimodal all directions" "Indifferent Majority vs. Passionate Minority" "Prop8 mean>0" "Prop8-normal mean>0" "Prop8 mean>0 all issues"
-7
+6
 
 TEXTBOX
 845
@@ -809,7 +792,7 @@ HORIZONTAL
 MONITOR
 0
 541
-410
+296
 586
 Total Payoff Per Issue
 map [x -> precision x 2] total-payoff-per-issue
@@ -826,7 +809,7 @@ vote-portion-strategic
 vote-portion-strategic
 0
 1
-0.0
+1.0
 .01
 1
 NIL
@@ -889,7 +872,7 @@ PLOT
 371
 1225
 521
-Utilities vs Votes for one turtles
+Utilities vs Votes for individual turtles
 NIL
 NIL
 -1.0
@@ -911,16 +894,16 @@ INPUTBOX
 1253
 583
 voter-num
-386.0
+317.0
 1
 0
 Number
 
 BUTTON
-24
-398
-133
-431
+0
+385
+109
+418
 setup & vote
 setup\nvote
 NIL
@@ -951,6 +934,17 @@ false
 PENS
 "default" 0.1 1 -16777216 true "" "histogram [item issue-num votes] of voters"
 "pen-1" 1.0 0 -7500403 true "" "plot-y-axis"
+
+MONITOR
+305
+541
+388
+586
+total payoff
+sum total-payoff-per-issue
+2
+1
+11
 
 @#$#@#$#@
 ## experiments
