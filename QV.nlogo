@@ -67,7 +67,7 @@ end
 to spawn-voters-with-utilities
 
   (ifelse
-    calibration = "manual" [create-voters-with-manually-chosen-utililties]
+    calibration = "manual" or calibration = "3. util correlated pmp" [create-voters-with-manually-chosen-utililties]
     calibration = "1. prop8-mean>0" or calibration = "2. prop8-mean=0" [create-voters-with-prop8-utility-dist]
   )
 
@@ -317,6 +317,14 @@ to assign-pmp-from-distribution
       ask voters [set perceived-pivotality (item who list-of-p)]
     ]
   )
+  if calibration = "3. util correlated pmp" [
+    let max-util max [abs utility] of voters
+    ask voters [
+      let temp ((abs (utility * r) / max-util) + (perceived-pivotality * (1 - r))) ;; dividing by max-util puts all values on desired range 0-1
+      let new-perceived-pivotality min (list 1 (max list 0 random-normal temp (sqrt variance-of-pmp)))
+      set perceived-pivotality new-perceived-pivotality
+    ]
+  ]
 end
 
 
@@ -551,7 +559,7 @@ majority-mean-utility
 majority-mean-utility
 -10
 10
-0.0
+-1.0
 .5
 1
 NIL
@@ -566,7 +574,7 @@ majority-utility-stdev
 majority-utility-stdev
 0
 10
-2.0
+1.0
 0.5
 1
 NIL
@@ -581,7 +589,7 @@ variance-of-pmp
 variance-of-pmp
 0
 0.083
-0.083
+0.0
 .001
 1
 NIL
@@ -650,7 +658,7 @@ minority-fraction
 minority-fraction
 0
 .5
-0.0
+0.4
 .01
 1
 NIL
@@ -665,7 +673,7 @@ minority-mean-utility
 minority-mean-utility
 -10
 10
-10.0
+1.0
 1
 1
 NIL
@@ -734,12 +742,12 @@ utilities-median
 CHOOSER
 5
 180
-167
+171
 225
 calibration
 calibration
-"manual" "1. prop8-mean>0" "2. prop8-mean=0"
-0
+"manual" "1. prop8-mean>0" "2. prop8-mean=0" "3. util correlated pmp"
+3
 
 TEXTBOX
 177
@@ -776,7 +784,7 @@ CHOOSER
 behavior-under-qv
 behavior-under-qv
 "rational" "right-direction-random-magnitude"
-1
+0
 
 SLIDER
 0
@@ -810,6 +818,21 @@ false
 "" "clear-plot"
 PENS
 "default" 1.0 2 -16777216 true "" "ask voters [plotxy utility votes-cast]"
+
+SLIDER
+600
+476
+772
+509
+r
+r
+0
+1
+0.79
+.01
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?

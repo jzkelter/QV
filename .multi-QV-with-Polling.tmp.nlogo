@@ -961,7 +961,7 @@ perceived-utility-stdev
 perceived-utility-stdev
 0
 0.1
-0.08
+0.0
 0.01
 1
 NIL
