@@ -1,0 +1,8 @@
+[run number],number-of-voters,minority-fraction,majority-mean-utility,majority-utility-stdev,minority-mean-utility,minority-utility-stdev,calibration,marginal-pivotality,variance-of-pmp,limit-votes?,payoff-include-votes-cost?,voting-mechanism,[step],mean payoff-sign-list,mean payoff-list,standard-deviation payoff-list,mean vote-sum-list,standard-deviation vote-sum-list,mean mean-median-same-sign-list
+1,11,0,0,2,10,1,manual,0.5,0,FALSE,FALSE,QV,1000,0.706,3.316707676,5.761492148,-0.028,7.967854335,0.807
+2,51,0,0,2,10,1,manual,0.5,0,FALSE,FALSE,QV,1000,0.718,7.198548388,12.1825173,0.597,17.26449112,0.79
+3,101,0,0,2,10,1,manual,0.5,0,FALSE,FALSE,QV,1000,0.732,10.77931603,17.42923618,0.995,25.94478959,0.798
+4,501,0,0,2,10,1,manual,0.5,0,FALSE,FALSE,QV,1000,0.716,21.50740298,37.23761046,-2.464,53.04455135,0.78
+5,1001,0,0,2,10,1,manual,0.5,0,FALSE,FALSE,QV,1000,0.735,34.57489589,54.46921808,-0.556,79.71991049,0.818
+6,5001,0,0,2,10,1,manual,0.5,0,FALSE,FALSE,QV,1000,0.737,75.93413891,120.0997939,-1.013,172.8269365,0.774
+7,10001,0,0,2,10,1,manual,0.5,0,FALSE,FALSE,QV,1000,0.709,103.7233776,169.0734017,-0.997,244.6457163,0.793

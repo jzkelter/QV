@@ -1,0 +1,8 @@
+[run number],number-of-voters,minority-fraction,majority-mean-utility,majority-utility-stdev,minority-mean-utility,minority-utility-stdev,calibration,marginal-pivotality,variance-of-pmp,limit-votes?,payoff-include-votes-cost?,voting-mechanism,[step],mean payoff-sign-list,mean payoff-list,standard-deviation payoff-list,mean vote-sum-list,standard-deviation vote-sum-list,mean mean-median-same-sign-list
+1,11,0,0,1,10,1,1. prop8-mean>0,0.5,0,FALSE,FALSE,QV,1000,0.716,1.176099178,3.642538772,-0.816,8.050400795,0.777
+2,51,0,0,1,10,1,1. prop8-mean>0,0.5,0,FALSE,FALSE,QV,1000,0.592,2.239152175,10.26469233,-3.448,17.4139755,0.619
+3,101,0,0,1,10,1,1. prop8-mean>0,0.5,0,FALSE,FALSE,QV,1000,0.526,1.33036371,16.74250339,-7.699,24.44872469,0.509
+4,501,0,0,1,10,1,1. prop8-mean>0,0.5,0,FALSE,FALSE,QV,1000,0.259,-19.93657642,59.55782004,-38.153,55.36723871,0.204
+5,1001,0,0,1,10,1,1. prop8-mean>0,0.5,0,FALSE,FALSE,QV,1000,0.151,-69.01103146,92.59325444,-79.305,77.14507981,0.1
+6,5001,0,0,1,10,1,1. prop8-mean>0,0.5,0,FALSE,FALSE,QV,1000,0.012,-540.113535,157.285735,-400.4,178.5220045,0.002
+7,10001,0,0,1,10,1,1. prop8-mean>0,0.5,0,FALSE,FALSE,QV,1000,0.001,-1106.402175,148.8379031,-819.802,259.3127222,0
