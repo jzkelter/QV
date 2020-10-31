@@ -426,7 +426,7 @@ number-of-voters
 number-of-voters
 1
 10001
-2041.0
+101.0
 10
 1
 NIL
@@ -574,7 +574,7 @@ majority-utility-stdev
 majority-utility-stdev
 0
 10
-1.0
+5.0
 0.5
 1
 NIL
@@ -589,7 +589,7 @@ variance-of-pmp
 variance-of-pmp
 0
 0.083
-0.0
+0.061
 .001
 1
 NIL
@@ -688,7 +688,7 @@ minority-utility-stdev
 minority-utility-stdev
 0
 10
-1.0
+10.0
 0.5
 1
 NIL
@@ -828,7 +828,7 @@ r
 r
 0
 1
-0.79
+0.75
 .01
 1
 NIL
@@ -1566,6 +1566,115 @@ vote</go>
     </enumeratedValueSet>
     <enumeratedValueSet variable="voting-mechanism">
       <value value="&quot;1p1v&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="r-and-pmp" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>reset
+vote</go>
+    <timeLimit steps="1000"/>
+    <metric>mean payoff-list</metric>
+    <enumeratedValueSet variable="number-of-voters">
+      <value value="51"/>
+      <value value="101"/>
+      <value value="1001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="majority-utility-stdev">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="majority-mean-utility">
+      <value value="-1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-utility-stdev">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-mean-utility">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="payoff-include-votes-cost?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="behavior-under-qv">
+      <value value="&quot;rational&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="calibration">
+      <value value="&quot;3. util correlated pmp&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="poll-response-rate">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="variance-of-pmp">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="r" first="0" step="0.05" last="1"/>
+    <enumeratedValueSet variable="marginal-pivotality">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="voting-mechanism">
+      <value value="&quot;QV&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="limit-votes?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-fraction">
+      <value value="0.4"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="pmp-stdev" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>reset
+vote</go>
+    <timeLimit steps="100"/>
+    <metric>mean payoff-list</metric>
+    <enumeratedValueSet variable="number-of-voters">
+      <value value="101"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="majority-utility-stdev">
+      <value value="1"/>
+      <value value="5"/>
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="majority-mean-utility">
+      <value value="-1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-utility-stdev">
+      <value value="1"/>
+      <value value="5"/>
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-mean-utility">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="payoff-include-votes-cost?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="behavior-under-qv">
+      <value value="&quot;rational&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="calibration">
+      <value value="&quot;3. util correlated pmp&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="poll-response-rate">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="variance-of-pmp">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="r">
+      <value value="0.75"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="marginal-pivotality">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="voting-mechanism">
+      <value value="&quot;QV&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="limit-votes?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-fraction">
+      <value value="0.2"/>
+      <value value="0.4"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>

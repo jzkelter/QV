@@ -516,7 +516,7 @@ number-of-voters
 number-of-voters
 11
 10001
-1531.0
+1001.0
 10
 1
 NIL
@@ -900,7 +900,7 @@ INPUTBOX
 1253
 583
 voter-num
-317.0
+337.0
 1
 0
 Number
@@ -961,7 +961,7 @@ perceived-utility-stdev
 perceived-utility-stdev
 0
 0.1
-0.08
+0.1
 0.01
 1
 NIL
@@ -1503,6 +1503,49 @@ set social-policy-vector poll</go>
     </enumeratedValueSet>
     <enumeratedValueSet variable="utility-distribution">
       <value value="&quot;Prop8 mean&gt;0 all issues&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="perceived-pmp-varying-stdev" repetitions="100" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>vote</go>
+    <timeLimit steps="1"/>
+    <metric>sum total-payoff-per-issue</metric>
+    <enumeratedValueSet variable="vote-portion-strategic">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number-of-voters">
+      <value value="1001"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="perceived-utility-stdev" first="0" step="0.01" last="0.1"/>
+    <enumeratedValueSet variable="proportion-of-strategic-voters">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-power">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="y-axis">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="x-axis">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="QV?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="voter-num">
+      <value value="337"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number-of-issues">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="issue-num">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="poll-response-rate">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="utility-distribution">
+      <value value="&quot;Normal mean = 0&quot;"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
