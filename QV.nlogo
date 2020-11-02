@@ -9,6 +9,7 @@ voters-own [
   last-voice-credits-spent
   votes-cast
   perceived-pivotality
+  majority?
 ]
 
 referenda-own [
@@ -67,7 +68,7 @@ end
 to spawn-voters-with-utilities
 
   (ifelse
-    calibration = "manual" or calibration = "3. util correlated pmp" [create-voters-with-manually-chosen-utililties]
+    calibration = "manual" [create-voters-with-manually-chosen-utililties]
     calibration = "1. prop8-mean>0" or calibration = "2. prop8-mean=0" [create-voters-with-prop8-utility-dist]
   )
 
@@ -98,15 +99,19 @@ to create-voters-with-prop8-utility-dist
     (ifelse
       random-num < lgbt-in-relationship [
         set utility 2 + random-float 18
+        set majority? false
       ]
       random-num < lgbt-total [ ; This the portion of the population that is LGBT and not in a relationship, because any number below 0.007 already went to lgbt-in-relationship
         set utility 0.5 + random-float 3.5
+        set majority? false
       ]
       random-num < het-support + lgbt-total [ ; This is the % of the non-LGBT population that supported gay marriage (the number has to be greater than lgbt-total already)
         set utility random-float 1
+        set majority? false
       ]
       [ ; the remaining % of the population opposed gay marriage
         set utility random-float -1
+        set majority? true
       ]
     )
   ]
@@ -116,9 +121,11 @@ end
 to create-voters-with-manually-chosen-utililties
   create-voters round (number-of-voters * (1 - minority-fraction)) [
     set utility random-normal majority-mean-utility majority-utility-stdev ; If the utility > 0, voter wants the referendum to pass and vice versa. The larger abs utility is, the more the voter cares.
+    set majority? true
   ]
   create-voters round (number-of-voters * minority-fraction) [
     set utility random-normal minority-mean-utility minority-utility-stdev ; If the utility > 0, voter wants the referendum to pass and vice versa. The larger abs utility is, the more the voter cares.
+    set majority? false
   ]
 end
 
@@ -285,7 +292,10 @@ to assign-pmp
 ;  ifelse estimating-PMP-from-polls? [
 ;    estimate-pmp-from-polls
 ;  ] [
-    assign-pmp-from-distribution
+  (ifelse correlate-utility-pmp?
+    [assign-correlated-pmp-from-distribution]
+    [assign-pmp-from-distribution])
+
 ;  ]
 end
 
@@ -317,16 +327,26 @@ to assign-pmp-from-distribution
       ask voters [set perceived-pivotality (item who list-of-p)]
     ]
   )
-  if calibration = "3. util correlated pmp" [
-    let max-util max [abs utility] of voters
-    ask voters [
-      let temp ((abs (utility * r) / max-util) + (perceived-pivotality * (1 - r))) ;; dividing by max-util puts all values on desired range 0-1
-      let new-perceived-pivotality min (list 1 (max list 0 random-normal temp (sqrt variance-of-pmp)))
-      set perceived-pivotality new-perceived-pivotality
-    ]
-  ]
 end
 
+to assign-correlated-pmp-from-distribution
+  ; beta distribution at low variance is similar to a normal distribution
+  ; assume pmp is normally distributed with mean = 0.5 and stdev = 0.1
+  ; 11/1/2020 adding majority? attribute for voters to determine z score of utility
+  ; This currently only works on manual distributions
+  ask voters [
+    let zscore 0
+    (ifelse majority? = true
+      [set zscore ((utility - majority-mean-utility) / majority-utility-stdev)]
+      [set zscore ((utility - minority-mean-utility) / minority-utility-stdev)]
+    )
+
+    let uncorrelated-perceived-pivotality (random-normal 0.5 0.1)
+    set perceived-pivotality (uncorrelated-perceived-pivotality * (1 - r)) + (((abs zscore * 0.1) + 0.5) * r)
+    set perceived-pivotality max (list 0 min (list 1 abs perceived-pivotality))
+
+  ]
+end
 
 to-report voice-credits-spent [active-referendum] ; voter function
   let spent-voice-credits ifelse-value limit-votes? [
@@ -426,7 +446,7 @@ number-of-voters
 number-of-voters
 1
 10001
-101.0
+1001.0
 10
 1
 NIL
@@ -559,7 +579,7 @@ majority-mean-utility
 majority-mean-utility
 -10
 10
--1.0
+4.0
 .5
 1
 NIL
@@ -589,7 +609,7 @@ variance-of-pmp
 variance-of-pmp
 0
 0.083
-0.061
+0.01
 .001
 1
 NIL
@@ -647,7 +667,7 @@ CHOOSER
 voting-mechanism
 voting-mechanism
 "1p1v" "QV"
-1
+0
 
 SLIDER
 2
@@ -658,7 +678,7 @@ minority-fraction
 minority-fraction
 0
 .5
-0.4
+0.0
 .01
 1
 NIL
@@ -673,7 +693,7 @@ minority-mean-utility
 minority-mean-utility
 -10
 10
-1.0
+0.0
 1
 1
 NIL
@@ -688,7 +708,7 @@ minority-utility-stdev
 minority-utility-stdev
 0
 10
-10.0
+0.0
 0.5
 1
 NIL
@@ -746,8 +766,8 @@ CHOOSER
 225
 calibration
 calibration
-"manual" "1. prop8-mean>0" "2. prop8-mean=0" "3. util correlated pmp"
-3
+"manual" "1. prop8-mean>0" "2. prop8-mean=0"
+0
 
 TEXTBOX
 177
@@ -828,11 +848,22 @@ r
 r
 0
 1
-0.75
+0.65
 .01
 1
 NIL
 HORIZONTAL
+
+SWITCH
+313
+477
+488
+510
+correlate-utility-pmp?
+correlate-utility-pmp?
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1572,24 +1603,20 @@ vote</go>
     <setup>setup</setup>
     <go>reset
 vote</go>
-    <timeLimit steps="1000"/>
-    <metric>mean payoff-list</metric>
+    <timeLimit steps="100"/>
+    <metric>mean payoff-sign-list</metric>
     <enumeratedValueSet variable="number-of-voters">
-      <value value="51"/>
-      <value value="101"/>
       <value value="1001"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="majority-utility-stdev">
       <value value="1"/>
+      <value value="3"/>
+      <value value="5"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="majority-mean-utility">
-      <value value="-1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="minority-utility-stdev">
+      <value value="0"/>
       <value value="1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="minority-mean-utility">
-      <value value="1"/>
+      <value value="4"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="payoff-include-votes-cost?">
       <value value="false"/>
@@ -1598,26 +1625,23 @@ vote</go>
       <value value="&quot;rational&quot;"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="calibration">
-      <value value="&quot;3. util correlated pmp&quot;"/>
+      <value value="&quot;manual&quot;"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="poll-response-rate">
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="variance-of-pmp">
-      <value value="0"/>
+      <value value="0.01"/>
     </enumeratedValueSet>
     <steppedValueSet variable="r" first="0" step="0.05" last="1"/>
-    <enumeratedValueSet variable="marginal-pivotality">
-      <value value="0.5"/>
-    </enumeratedValueSet>
     <enumeratedValueSet variable="voting-mechanism">
-      <value value="&quot;QV&quot;"/>
+      <value value="&quot;1p1v&quot;"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="limit-votes?">
       <value value="false"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="minority-fraction">
-      <value value="0.4"/>
+      <value value="0"/>
     </enumeratedValueSet>
   </experiment>
   <experiment name="pmp-stdev" repetitions="1" runMetricsEveryStep="false">
