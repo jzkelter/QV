@@ -9,7 +9,7 @@ voters-own [
   last-voice-credits-spent
   votes-cast
   perceived-pivotality
-  majority?
+  majority? ;;True if voter is part of the majority voters, False if voter is part of the minority fraction of voters
 ]
 
 referenda-own [
@@ -292,9 +292,9 @@ to assign-pmp
 ;  ifelse estimating-PMP-from-polls? [
 ;    estimate-pmp-from-polls
 ;  ] [
-  (ifelse correlate-utility-pmp?
+  ifelse utility-pmp-correlation = 0
+    [assign-pmp-from-distribution]
     [assign-correlated-pmp-from-distribution]
-    [assign-pmp-from-distribution])
 
 ;  ]
 end
@@ -331,39 +331,44 @@ end
 
 to assign-correlated-pmp-from-distribution
   ; beta distribution at low variance is similar to a normal distribution
-  ; assume pmp is normally distributed with mean = 0.5 and stdev = 0.1
+  ; assume uncorrelated pmp is normally distributed with mean = 0.5 and stdev = 0.1
   ; 11/1/2020 adding majority? attribute for voters to determine z score of utility
+  ; Since the majority/minority distributions are inconsistent, this method involves finding the correlated-pmp by breaking it up into two components: the uncorrelated pmp distribution (weighted by 1 - |utility-pmp-correlation|) and a direct correlation (weighted by utility-pmp-correlation)
+  ; uniform distribution equations: https://courses.lumenlearning.com/odessa-introstats1-1/chapter/the-uniform-distribution/
   ask voters [
     let zscore 0
     (ifelse
       calibration = "manual" [
-        (ifelse majority? = true
+        ifelse majority? = true
           [set zscore ((utility - majority-mean-utility) / majority-utility-stdev)]
           [set zscore ((utility - minority-mean-utility) / minority-utility-stdev)]
-        )
       ]
       calibration = "1. prop8-mean>0" [
-        (ifelse majority? = true
-          [set zscore ((utility + 0.5) / 0.28)]
-          [set zscore ((utility - 0.865) / 4.5)]
-        )
+        let prop8-majority-mean -0.5 ;; uniformally distributed (-1,0) -> mean = -0.5
+        let prop8-majority-stdev 0.28 ;; stdev for population equal to sqrt(1 / 12)
+        let prop8-minority-mean 0.77 ;; found by sum of means weighted by their relative proportion: (0.44(0.5) + 0.033(2.25) + 0.004(11)) / 0.48
+        let prop8-minority-stdev 4 ;; since max value of 20, this keeps pmp bound in (0,1)
+        ifelse majority? = true
+          [set zscore ((utility - prop8-majority-mean) / prop8-majority-stdev)]
+          [set zscore ((utility - prop8-minority-mean) / prop8-minority-stdev)]
       ]
       calibration = "2. prop8-mean=0" [
-        (ifelse majority? = true
-          [set zscore ((utility + 0.5) / 0.28)]
-          [set zscore ((utility - 0.77) / 5)]
-        )
+        let prop8-majority-mean -0.5 ;; uniformally distributed (-1,0) -> mean = -0.5
+        let prop8-majority-stdev 0.28 ;; stdev for population equal to sqrt(1 / 12)
+        let prop8-minority-mean 0.865 ;; found by sum of means weighted by their relative proportion: (0.32(0.5) + 0.033(2.25) + 0.004(11)) / 0.36
+        let prop8-minority-stdev 4 ;; since max value of 20, this keeps pmp bound in (0,1)
+        ifelse majority? = true
+          [set zscore ((utility - prop8-majority-mean) / prop8-majority-stdev)]
+          [set zscore ((utility - prop8-minority-mean) / prop8-minority-stdev)]
       ]
     )
     set zscore (abs zscore)
 
     let uncorrelated-perceived-pivotality (random-normal 0.5 0.1)
-    (ifelse r > 0
-      [set perceived-pivotality (uncorrelated-perceived-pivotality * (1 - r)) + (((zscore * 0.1) + 0.5) * r)] ;passionate voters are optimistic
-      [set perceived-pivotality (uncorrelated-perceived-pivotality * (1 + r)) + (((zscore * -0.1) + 0.5) * -1 * r)] ; passionate voters are cynical
-    )
+    ifelse utility-pmp-correlation > 0
+      [set perceived-pivotality (uncorrelated-perceived-pivotality * (1 - utility-pmp-correlation)) + (((zscore * 0.1) + 0.5) * utility-pmp-correlation)] ;passionate voters are optimistic
+      [set perceived-pivotality (uncorrelated-perceived-pivotality * (1 + utility-pmp-correlation)) + (((zscore * -0.1) + 0.5) * -1 * utility-pmp-correlation)] ; passionate voters are cynical
     set perceived-pivotality max (list 0 min (list 1 perceived-pivotality))
-
   ]
 end
 
@@ -786,7 +791,7 @@ CHOOSER
 calibration
 calibration
 "manual" "1. prop8-mean>0" "2. prop8-mean=0"
-0
+1
 
 TEXTBOX
 177
@@ -859,30 +864,19 @@ PENS
 "default" 1.0 2 -16777216 true "" "ask voters [plotxy utility votes-cast]"
 
 SLIDER
-600
-476
-772
-509
-r
-r
+314
+474
+494
+507
+utility-pmp-correlation
+utility-pmp-correlation
 -1
 1
-1.0
+-1.0
 .01
 1
 NIL
 HORIZONTAL
-
-SWITCH
-313
-477
-488
-510
-correlate-utility-pmp?
-correlate-utility-pmp?
-0
-1
--1000
 
 @#$#@#$#@
 ## WHAT IS IT?

@@ -227,7 +227,7 @@ to set-utilities
     let first-issue-utility item 0 utilities
     let temp-utilities (list)
     let curr-issue 0
-    ; Adding in a negative correlationas well (in other words, the issues selected will have a negative correlation with the first issue), this is less relevant from an analytic perspective, but I left it in just in case.
+    ;dding in a negative correlationas well (in other words, the issues selected will have a negative correlation with the first issue), this is less relevant from an analytic perspective, but I left it in just in case.
     repeat correlate-n-issues [
       ifelse correlate-issues > 0 [
         set temp-utilities fput ((correlate-issues * first-issue-utility) + ((1 - correlate-issues) * item curr-issue utilities)) temp-utilities
@@ -995,7 +995,7 @@ correlate-issues
 correlate-issues
 -1
 1
-0.0
+-1.0
 0.01
 1
 NIL
