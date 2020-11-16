@@ -223,17 +223,13 @@ to set-utilities
       ]
     ]
   )
-  if correlate-issues != 0 [
+  if issues-correlation != 0 [
     let first-issue-utility item 0 utilities
     let temp-utilities (list)
-    let curr-issue 0
-    ;dding in a negative correlationas well (in other words, the issues selected will have a negative correlation with the first issue), this is less relevant from an analytic perspective, but I left it in just in case.
-    repeat correlate-n-issues [
-      ifelse correlate-issues > 0 [
-        set temp-utilities fput ((correlate-issues * first-issue-utility) + ((1 - correlate-issues) * item curr-issue utilities)) temp-utilities
-      ] [
-        set temp-utilities fput ((correlate-issues * first-issue-utility) + ((1 + correlate-issues) * item curr-issue utilities)) temp-utilities
-      ]
+    let curr-issue 1
+    set temp-utilities fput first-issue-utility temp-utilities
+    repeat correlate-n-issues - 1[
+      set temp-utilities fput ((issues-correlation * first-issue-utility) + ((1 - (abs issues-correlation)) * item curr-issue utilities)) temp-utilities
       set curr-issue curr-issue + 1
     ]
     repeat number-of-issues - correlate-n-issues [
@@ -965,7 +961,7 @@ perceived-utility-stdev
 perceived-utility-stdev
 0
 0.1
-0.1
+0.0
 0.01
 1
 NIL
@@ -991,11 +987,11 @@ SLIDER
 535
 565
 568
-correlate-issues
-correlate-issues
+issues-correlation
+issues-correlation
 -1
 1
--1.0
+1.0
 0.01
 1
 NIL
@@ -1009,8 +1005,8 @@ SLIDER
 correlate-n-issues
 correlate-n-issues
 1
-10
-10.0
+number-of-issues
+7.0
 1
 1
 NIL
@@ -1596,6 +1592,44 @@ set social-policy-vector poll</go>
     <enumeratedValueSet variable="utility-distribution">
       <value value="&quot;Normal mean = 0&quot;"/>
     </enumeratedValueSet>
+  </experiment>
+  <experiment name="correlate-n-issues" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>vote</go>
+    <timeLimit steps="100"/>
+    <metric>total-payoff-per-issue</metric>
+    <enumeratedValueSet variable="vote-portion-strategic">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number-of-voters">
+      <value value="1001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="perceived-utility-stdev">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="proportion-of-strategic-voters">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-power">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="y-axis">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="x-axis">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="QV?">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number-of-issues">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="utility-distribution">
+      <value value="&quot;Normal mean = 0&quot;"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="issues-correlation" first="-1" step="0.05" last="1"/>
+    <steppedValueSet variable="correlate-n-issues" first="1" step="1" last="10"/>
   </experiment>
 </experiments>
 @#$#@#$#@

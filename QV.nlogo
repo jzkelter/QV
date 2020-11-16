@@ -791,7 +791,7 @@ CHOOSER
 calibration
 calibration
 "manual" "1. prop8-mean>0" "2. prop8-mean=0"
-1
+2
 
 TEXTBOX
 177
@@ -872,11 +872,22 @@ utility-pmp-correlation
 utility-pmp-correlation
 -1
 1
--1.0
+0.55
 .01
 1
 NIL
 HORIZONTAL
+
+MONITOR
+1138
+315
+1247
+360
+mean payoff sum
+mean payoff-sign-list
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1712,6 +1723,39 @@ vote</go>
     <enumeratedValueSet variable="minority-fraction">
       <value value="0.2"/>
       <value value="0.4"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="prop-8-correlate-pmp-utils" repetitions="1" runMetricsEveryStep="false">
+    <setup>setup</setup>
+    <go>reset
+vote</go>
+    <timeLimit steps="1000"/>
+    <metric>mean payoff-sign-list</metric>
+    <enumeratedValueSet variable="payoff-include-votes-cost?">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="behavior-under-qv">
+      <value value="&quot;rational&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="calibration">
+      <value value="&quot;1. prop8-mean&gt;0&quot;"/>
+      <value value="&quot;2. prop8-mean=0&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="variance-of-pmp">
+      <value value="0.01"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number-of-voters">
+      <value value="1001"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="voting-mechanism">
+      <value value="&quot;QV&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="marginal-pivotality">
+      <value value="0.5"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="utility-pmp-correlation" first="-1" step="0.05" last="1"/>
+    <enumeratedValueSet variable="limit-votes?">
+      <value value="false"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
