@@ -872,7 +872,7 @@ utility-pmp-correlation
 utility-pmp-correlation
 -1
 1
--0.38
+0.5
 .01
 1
 NIL
@@ -1802,7 +1802,7 @@ vote</go>
     <setup>setup</setup>
     <go>reset
 vote</go>
-    <timeLimit steps="100"/>
+    <timeLimit steps="1000"/>
     <metric>mean payoff-sign-list</metric>
     <enumeratedValueSet variable="payoff-include-votes-cost?">
       <value value="false"/>

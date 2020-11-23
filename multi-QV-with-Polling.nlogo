@@ -989,7 +989,7 @@ SLIDER
 568
 issues-correlation
 issues-correlation
--1
+0
 1
 1.0
 0.01
@@ -1006,7 +1006,7 @@ correlate-n-issues
 correlate-n-issues
 1
 number-of-issues
-7.0
+10.0
 1
 1
 NIL
@@ -1593,11 +1593,11 @@ set social-policy-vector poll</go>
       <value value="&quot;Normal mean = 0&quot;"/>
     </enumeratedValueSet>
   </experiment>
-  <experiment name="correlate-n-issues" repetitions="1" runMetricsEveryStep="false">
+  <experiment name="correlate-n-issues" repetitions="100" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>vote</go>
-    <timeLimit steps="100"/>
-    <metric>sum total-payoff-per-issue</metric>
+    <timeLimit steps="1"/>
+    <metric>mean total-payoff-per-issue</metric>
     <enumeratedValueSet variable="vote-portion-strategic">
       <value value="1"/>
     </enumeratedValueSet>
