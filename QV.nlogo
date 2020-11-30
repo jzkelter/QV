@@ -339,9 +339,10 @@ to assign-correlated-pmp-from-distribution
     let zscore 0
     (ifelse
       calibration = "manual" [
-        ifelse majority? = true
-          [set zscore ((utility - majority-mean-utility) / majority-utility-stdev)]
-          [set zscore ((utility - minority-mean-utility) / minority-utility-stdev)]
+        ; https://stats.stackexchange.com/questions/117741/adding-two-or-more-means-and-calculating-the-new-standard-deviation
+        let manual-mean (majority-mean-utility * (1 - minority-fraction)) + (minority-mean-utility * minority-fraction)
+        let manual-stdev (majority-utility-stdev * (1 - minority-fraction)) + (minority-utility-stdev * minority-fraction)
+        set zscore ((utility - manual-mean) / manual-stdev)
       ]
       calibration = "1. prop8-mean>0" [
         let prop8-majority-mean -0.5 ;; uniformally distributed (-1,0) -> mean = -0.5
@@ -717,7 +718,7 @@ minority-mean-utility
 minority-mean-utility
 -10
 10
-6.0
+7.0
 1
 1
 NIL
@@ -872,7 +873,7 @@ utility-pmp-correlation
 utility-pmp-correlation
 -1
 1
--0.38
+-1.0
 .01
 1
 NIL
@@ -1762,18 +1763,21 @@ vote</go>
     <setup>setup</setup>
     <go>reset
 vote</go>
-    <timeLimit steps="10"/>
+    <timeLimit steps="1000"/>
     <metric>mean payoff-sign-list</metric>
     <enumeratedValueSet variable="payoff-include-votes-cost?">
       <value value="false"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="majority-mean-utility">
       <value value="0"/>
-      <value value="0.05"/>
+      <value value="0.02"/>
       <value value="0.1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="majority-utility-stdev">
       <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="minority-fraction">
+      <value value="0"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="behavior-under-qv">
       <value value="&quot;rational&quot;"/>
@@ -1793,7 +1797,7 @@ vote</go>
     <enumeratedValueSet variable="marginal-pivotality">
       <value value="0.5"/>
     </enumeratedValueSet>
-    <steppedValueSet variable="utility-pmp-correlation" first="-1" step="0.2" last="1"/>
+    <steppedValueSet variable="utility-pmp-correlation" first="-1" step="0.1" last="1"/>
     <enumeratedValueSet variable="limit-votes?">
       <value value="false"/>
     </enumeratedValueSet>
@@ -1802,7 +1806,7 @@ vote</go>
     <setup>setup</setup>
     <go>reset
 vote</go>
-    <timeLimit steps="100"/>
+    <timeLimit steps="1000"/>
     <metric>mean payoff-sign-list</metric>
     <enumeratedValueSet variable="payoff-include-votes-cost?">
       <value value="false"/>
@@ -1814,7 +1818,7 @@ vote</go>
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="minority-mean-utility">
-      <value value="6"/>
+      <value value="7"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="minority-utility-stdev">
       <value value="1"/>

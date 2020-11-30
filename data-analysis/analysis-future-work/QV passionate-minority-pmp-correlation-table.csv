@@ -1,4 +1,4 @@
-[run number],payoff-include-votes-cost?,majority-mean-utility,majority-utility-stdev,minority-mean-utility,minority-utility-stdev,minority-fraction,behavior-under-qv,calibration,variance-of-pmp,number-of-voters,voting-mechanism,marginal-pivotality,utility-pmp-correlation,limit-votes?,[step],mean payoff-sign-list,
+[run number],payoff-include-votes-cost?,majority-mean-utility,majority-utility-stdev,minority-mean-utility,minority-utility-stdev,minority-fraction,behavior-under-qv,calibration,variance-of-pmp,number-of-voters,voting-mechanism,marginal-pivotality,utility-pmp-correlation,limit-votes?,[step],mean payoff-sign-list,average payoff
 5,FALSE,-4,1,6,1,0.4,rational,manual,0.01,1001,QV,0.5,-1,FALSE,100,0.77,0.7813
 7,FALSE,-4,1,6,1,0.4,rational,manual,0.01,1001,QV,0.5,-1,FALSE,100,0.81,0.7813
 8,FALSE,-4,1,6,1,0.4,rational,manual,0.01,1001,QV,0.5,-1,FALSE,100,0.79,0.7813

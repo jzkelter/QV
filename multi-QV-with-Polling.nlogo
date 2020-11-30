@@ -1593,7 +1593,7 @@ set social-policy-vector poll</go>
       <value value="&quot;Normal mean = 0&quot;"/>
     </enumeratedValueSet>
   </experiment>
-  <experiment name="correlate-n-issues" repetitions="100" runMetricsEveryStep="false">
+  <experiment name="correlate-n-issues" repetitions="1000" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>vote</go>
     <timeLimit steps="1"/>
@@ -1628,7 +1628,7 @@ set social-policy-vector poll</go>
     <enumeratedValueSet variable="utility-distribution">
       <value value="&quot;Normal mean = 0&quot;"/>
     </enumeratedValueSet>
-    <steppedValueSet variable="issues-correlation" first="-1" step="0.05" last="1"/>
+    <steppedValueSet variable="issues-correlation" first="-1" step="0.1" last="1"/>
     <steppedValueSet variable="correlate-n-issues" first="1" step="1" last="10"/>
   </experiment>
 </experiments>
