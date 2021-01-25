@@ -94,14 +94,28 @@ to spawn-voters-majority-vs-minority
   let utility-sum-0 0
     while [count voters != number-of-voters][
       create-voters 1 [
+        set utilities (list)
         set strategic? random-float 1 < proportion-of-strategic-voters
         ifelse strategic? [set color 115 + 20 * vote-portion-strategic][set color violet]
         ifelse utility-sum-0 < minority-power [
-          set utilities n-values (number-of-issues - 1) [random-normal 0 .1]
-          set utilities fput random-normal .8 .05 utilities]
+          let initial-util (random-normal .8 .05)
+          while [ length utilities < correlate-n-issues - 1][ ;; creates the correlated issues
+            set utilities fput (initial-util * issues-correlation + (random-normal 0 .1) * (1 - issues-correlation)) utilities
+          ]
+          while [ length utilities < number-of-issues - 1][ ;; creates the uncorrelated issues
+            set utilities fput (random-normal 0 .1) utilities
+          ]
+          set utilities fput initial-util utilities
+        ]
         [
-          set utilities n-values (number-of-issues - 1) [random-normal 0 .3]
-          set utilities fput random-normal -.05 .05 utilities
+          let initial-util (random-normal -.05 .05)
+          while [ length utilities < correlate-n-issues - 1][ ;; creates the correlated issues
+            set utilities fput (initial-util * issues-correlation + (random-normal 0 .3) * (1 - issues-correlation)) utilities
+          ]
+          while [ length utilities < number-of-issues - 1][ ;; creates the uncorrelated issues
+            set utilities fput (random-normal 0 .2) utilities
+          ]
+          set utilities fput initial-util utilities
         ]
         set utility-sum-0 utility-sum-0 + item 0 utilities
       ]
@@ -299,7 +313,7 @@ end
 ; Sets votes to be a multiple of utilities
 to vote-truthful
   let vc-per-u sqrt (voice-credits / sum map [u -> u ^ 2] perceived-utilities)  ; calculate voice credits per unit of utility given this voter's utilities
-  set votes map[u -> u * vc-per-u] utilities
+  set votes map[u -> u * vc-per-u] perceived-utilities
 end
 
 to vote-strategic
@@ -443,6 +457,7 @@ to-report total-payoff-per-issue
 
   report payoff
 end
+
 
 
 to-report mean-utilities
@@ -783,7 +798,7 @@ CHOOSER
 utility-distribution
 utility-distribution
 "Normal mean = 0" "Normal mean != 0" "Bimodal one direction" "Bimodal all directions" "Indifferent Majority vs. Passionate Minority" "Prop8 mean>0" "Prop8-normal mean>0" "Prop8 mean>0 all issues"
-0
+4
 
 TEXTBOX
 845
@@ -804,7 +819,7 @@ minority-power
 minority-power
 0
 100
-0.0
+10.0
 10
 1
 NIL
@@ -1597,9 +1612,13 @@ set social-policy-vector poll</go>
     <setup>setup</setup>
     <go>vote</go>
     <timeLimit steps="1"/>
+    <metric>item 0 total-payoff-per-issue</metric>
     <metric>mean total-payoff-per-issue</metric>
     <enumeratedValueSet variable="vote-portion-strategic">
       <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="utility-distribution">
+      <value value="&quot;Indifferent Majority vs. Passionate Minority&quot;"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="number-of-voters">
       <value value="1001"/>
@@ -1611,7 +1630,7 @@ set social-policy-vector poll</go>
       <value value="0"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="minority-power">
-      <value value="0"/>
+      <value value="10"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="y-axis">
       <value value="1"/>
@@ -1625,11 +1644,10 @@ set social-policy-vector poll</go>
     <enumeratedValueSet variable="number-of-issues">
       <value value="10"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="utility-distribution">
-      <value value="&quot;Normal mean = 0&quot;"/>
+    <steppedValueSet variable="issues-correlation" first="0" step="0.05" last="1"/>
+    <enumeratedValueSet variable="correlate-n-issues">
+      <value value="10"/>
     </enumeratedValueSet>
-    <steppedValueSet variable="issues-correlation" first="-1" step="0.1" last="1"/>
-    <steppedValueSet variable="correlate-n-issues" first="1" step="1" last="10"/>
   </experiment>
 </experiments>
 @#$#@#$#@

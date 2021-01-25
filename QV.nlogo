@@ -604,7 +604,7 @@ majority-mean-utility
 majority-mean-utility
 -10
 10
--4.0
+0.0
 .5
 1
 NIL
@@ -619,7 +619,7 @@ majority-utility-stdev
 majority-utility-stdev
 0
 10
-1.0
+5.0
 0.5
 1
 NIL
@@ -703,7 +703,7 @@ minority-fraction
 minority-fraction
 0
 .5
-0.4
+0.0
 .01
 1
 NIL
@@ -718,7 +718,7 @@ minority-mean-utility
 minority-mean-utility
 -10
 10
-7.0
+6.1
 1
 1
 NIL
@@ -792,7 +792,7 @@ CHOOSER
 calibration
 calibration
 "manual" "1. prop8-mean>0" "2. prop8-mean=0"
-0
+2
 
 TEXTBOX
 177
@@ -851,9 +851,9 @@ PLOT
 453
 1024
 603
-plot 1
-NIL
-NIL
+Distribution
+utility
+votes cast
 0.0
 10.0
 0.0
@@ -873,7 +873,7 @@ utility-pmp-correlation
 utility-pmp-correlation
 -1
 1
--1.0
+1.0
 .01
 1
 NIL
@@ -1726,7 +1726,7 @@ vote</go>
       <value value="0.4"/>
     </enumeratedValueSet>
   </experiment>
-  <experiment name="prop-8-correlate-pmp-utils" repetitions="1" runMetricsEveryStep="false">
+  <experiment name="prop-8-correlate-pmp-utils" repetitions="10" runMetricsEveryStep="false">
     <setup>setup</setup>
     <go>reset
 vote</go>
@@ -1739,13 +1739,13 @@ vote</go>
       <value value="&quot;rational&quot;"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="calibration">
-      <value value="&quot;1. prop8-mean&gt;0&quot;"/>
       <value value="&quot;2. prop8-mean=0&quot;"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="variance-of-pmp">
       <value value="0.01"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="number-of-voters">
+      <value value="501"/>
       <value value="1001"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="voting-mechanism">
@@ -1818,7 +1818,7 @@ vote</go>
       <value value="1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="minority-mean-utility">
-      <value value="7"/>
+      <value value="6.1"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="minority-utility-stdev">
       <value value="1"/>

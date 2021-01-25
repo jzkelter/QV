@@ -1,0 +1,7 @@
+"BehaviorSpace results (NetLogo 6.1.1)"
+"QV.nlogo"
+"passionate-minority-pmp-correlation"
+"01/01/2021 14:48:12:480 -0700"
+"min-pxcor","max-pxcor","min-pycor","max-pycor"
+"-25","25","-25","25"
+"[run number]","payoff-include-votes-cost?","majority-mean-utility","majority-utility-stdev","minority-mean-utility","minority-utility-stdev","minority-fraction","behavior-under-qv","calibration","variance-of-pmp","number-of-voters","voting-mechanism","marginal-pivotality","utility-pmp-correlation","limit-votes?","[step]","mean payoff-sign-list"
